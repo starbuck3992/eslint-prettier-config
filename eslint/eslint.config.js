@@ -2,32 +2,25 @@ import js from '@eslint/js';
 import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
 import skipFormattingConfig from '@vue/eslint-config-prettier/skip-formatting';
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
-import pluginImport from 'eslint-plugin-import';
+import pluginImportX from 'eslint-plugin-import-x';
 import pluginTailwindcss from 'eslint-plugin-tailwindcss';
 import pluginUnusedImports from 'eslint-plugin-unused-imports';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 
 export default defineConfigWithVueTs(
-    // Base recommended configs
     js.configs.recommended,
     pluginVue.configs['flat/essential'],
     vueTsConfigs.recommended,
-
-    // Tailwindcss plugin
     ...pluginTailwindcss.configs['flat/recommended'],
 
-    // Skip Prettier formatting
+    // Registers the i18n plugin and assigns the JSONC/YAML parsers to *.json/*.yaml files
+    ...pluginVueI18n.configs['flat/base'],
+
     skipFormattingConfig,
 
-    // Global config
     {
         languageOptions: {
-            ecmaVersion: 'latest',
-            sourceType: 'module',
-            parserOptions: {
-                allowImportExportEverywhere: true,
-            },
             globals: {
                 ...globals.browser,
                 ...globals.node,
@@ -36,8 +29,7 @@ export default defineConfigWithVueTs(
 
         plugins: {
             'unused-imports': pluginUnusedImports,
-            import: pluginImport,
-            '@intlify/vue-i18n': pluginVueI18n,
+            'import-x': pluginImportX,
         },
 
         settings: {
@@ -48,7 +40,6 @@ export default defineConfigWithVueTs(
         },
 
         rules: {
-            // Vue rules
             'vue/block-order': [
                 'error',
                 {
@@ -60,7 +51,6 @@ export default defineConfigWithVueTs(
             'vue/require-default-prop': 'error',
             'vue/no-reserved-component-names': 'off',
 
-            // Vue i18n rules
             '@intlify/vue-i18n/no-html-messages': 'off',
             '@intlify/vue-i18n/no-raw-text': 'error',
             '@intlify/vue-i18n/no-duplicate-keys-in-locale': [
@@ -79,15 +69,12 @@ export default defineConfigWithVueTs(
             '@intlify/vue-i18n/no-missing-keys': 'error',
             '@intlify/vue-i18n/no-v-html': 'off',
 
-            // TypeScript rules
             '@typescript-eslint/no-explicit-any': 'off',
 
-            // Tailwind rules
             'tailwindcss/no-custom-classname': 'off',
 
-            // Import rules
-            'import/no-duplicates': 'error',
-            'import/order': [
+            'import-x/no-duplicates': 'error',
+            'import-x/order': [
                 'error',
                 {
                     'newlines-between': 'never',
@@ -105,19 +92,16 @@ export default defineConfigWithVueTs(
                 },
             ],
             'unused-imports/no-unused-imports': 'error',
-
-            // General rules (from Google style guide)
-            'require-jsdoc': 'off',
-            'max-len': 'off',
-            camelcase: 'off',
-            'new-cap': 'off',
         },
     },
 
-    // Override for JSON files (i18n)
+    // NBSP (U+00A0) is legitimate typography in translations (French "Astuce :", "20 %", ...);
+    // config/code JSON keeps the rule
     {
         files: ['**/translations/**/*.json'],
-        ...pluginVueI18n.configs['flat/base'],
+        rules: {
+            'no-irregular-whitespace': 'off',
+        },
     },
     {
         ignores: ['**/dist/**/*', '**/node_modules/**/*'],
